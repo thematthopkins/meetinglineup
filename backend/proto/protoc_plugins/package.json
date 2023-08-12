@@ -1,0 +1,10 @@
+{
+  "name": "pb",
+  "version": "1.0.0",
+  "description": "locking some versions to avoid usage of globally installed things, and allow npx usage.",
+  "scripts": {},
+  "author": "",
+  "dependencies": {
+    "ts-proto": "^1.156.2"
+  }
+}

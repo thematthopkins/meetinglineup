@@ -1,0 +1,70 @@
+syntax = "proto3";
+option go_package = "/;pb";
+
+package meetinglineup;
+
+message RoomEvent {
+    message AddUser{
+        string user_id = 1;
+        string name = 2;
+        double order = 3;
+    }
+
+    message RemoveUser{
+        string user_id = 1;
+    }
+
+    message ReorderUser{
+        string user_id = 1;
+        double order = 2;
+    }
+
+    message UpdateUserName{
+        string user_id = 1;
+        string name = 2;
+    }
+
+    message UpdateRoomName{
+        string name = 1;
+    }
+
+    message MarkUserAbsent{
+        string user_id = 1;
+    }
+
+    message MarkUserPresent{
+        string user_id = 1;
+    }
+
+    message Undo{
+        string event_id = 1;
+    }
+
+    message Redo{
+        string event_id = 1;
+    }
+
+    oneof Event {
+        AddUser add_user = 1;
+        RemoveUser remove_user = 2;
+        ReorderUser reorder_user = 3;
+        UpdateUserName updateUserName = 4;
+        UpdateRoomName updateRoomName = 5;
+        MarkUserAbsent markUserAbsent = 6;
+        MarkUserPresent markUserPresent = 7;
+        Undo undo = 8;
+        Redo redo = 9;
+    }
+}
+
+message EventMetadata{
+    string id = 1;
+    uint64 created_at = 2;
+    string session_id = 3;
+}
+
+
+message RoomEventWithMetadata{
+    EventMetadata metadata = 1;
+    RoomEvent event = 2;
+}
