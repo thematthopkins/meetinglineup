@@ -76,7 +76,7 @@ export default function AttendeeEl(props: {m: Attendee, addEvent: (e:RoomEvent) 
       }
     };
 
-    return <Row childGrow="expandFirstChild">
+    return <Row testId={m.id} childGrow="expandFirstChild">
             {
                 editingInput != null ?
                     <input autoFocus onKeyDown={handleKeyDown} onBlur={onNameChanged} type="text" value={editingInput} onChange={onEditingNameChanged}></input>

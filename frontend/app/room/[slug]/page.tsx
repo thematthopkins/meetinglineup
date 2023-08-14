@@ -3,7 +3,7 @@
 import {ReactElement, useState} from 'react';
 import RoomEl from './roomEl'
 import {RoomEvent, RoomEventWithMetadata} from 'app/pb';
-import {createTestRoom, applyRoomEvents, eventIdGenerator} from './model'
+import {createTestRoom, applyRoomEvents, eventIdGenerator, userIdGenerator} from './model'
 
 let socket = new WebSocket("ws://localhost:8080");
 
@@ -49,10 +49,12 @@ export default function Page():ReactElement {
         setEvents(newEvents);
         setRoom(newRoom);
     }
+
+
     return <>
         <div style={{display: "flex", flexDirection: "row", justifyContent: "center"}}>
             <div style={{width: "400px"}}>
-                <RoomEl m={room} addEvent={onAddEvent}></RoomEl>
+                <RoomEl m={room} addEvent={onAddEvent} userIdGenerator={userIdGenerator}></RoomEl>
             </div>
         </div>
     </>

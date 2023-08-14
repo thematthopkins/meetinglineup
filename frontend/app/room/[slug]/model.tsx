@@ -112,6 +112,10 @@ export function eventIdGenerator():string {
     return crypto.randomUUID();
 }
 
+export function userIdGenerator():string {
+    return crypto.randomUUID();
+}
+
 type TimeRetriever = () => BigInt;
 
 export function currentTimeRetriever():BigInt {
