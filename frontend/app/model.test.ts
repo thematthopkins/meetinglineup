@@ -1,4 +1,4 @@
-import {Room, createTestRoom, applyRoomEvents, RoomEventWithMetadataAndUndo, createUndoEvent} from './room/[slug]/model';
+import {Room, createTestRoom, applyRoomEvents, RoomEventWithMetadataAndUndo, createUndoEvent, combineClientAndServerEvents} from './room/[slug]/model';
 import {RoomEvent, RoomEventWithMetadata} from 'app/pb';
 import {expect, test} from '@jest/globals';
 
@@ -313,6 +313,139 @@ test('undo with no events generates no event', () => {
 
     var undone = createUndoEvent("my-user-id", events)
     expect(undone).toEqual(null);
+});
+
+
+test('combineClientAndServerEvents allows server to override', () => {
+    var clientEvents:RoomEventWithMetadata[] = [
+        {
+            event: {
+                event: {
+                    oneofKind: "addUser",
+                    addUser: {
+                        userId: "2857267B-9CF5-4A74-B56D-D99A90CDFD57",
+                        order: 100,
+                        name: "client-version-of-name",
+                    }
+                }
+            },
+            metadata: {
+                id: "1",
+                createdAt: BigInt(123),
+                sessionId: "session-a",
+            },
+        },
+        {
+            event: {
+                event: {
+                    oneofKind: "addUser",
+                    addUser: {
+                        userId: "DBD8471F-0119-4D69-9ECC-D293D8A04523",
+                        order: 100,
+                        name: "client-only-user",
+                    }
+                }
+            },
+            metadata: {
+                id: "2",
+                createdAt: BigInt(121),
+                sessionId: "session-a",
+            },
+        },
+    ];
+
+    var serverEvents:RoomEventWithMetadata[] = [
+        {
+            event: {
+                event: {
+                    oneofKind: "addUser",
+                    addUser: {
+                        userId: "2857267B-9CF5-4A74-B56D-D99A90CDFD57",
+                        order: 100,
+                        name: "server-version-of-name",
+                    }
+                }
+            },
+            metadata: {
+                id: "1",
+                createdAt: BigInt(123),
+                sessionId: "session-a",
+            },
+        },
+        {
+            event: {
+                event: {
+                    oneofKind: "addUser",
+                    addUser: {
+                        userId: "2857267B-9CF5-4A74-B56D-D99A90CDFD57",
+                        order: 100,
+                        name: "server-version-of-name",
+                    }
+                }
+            },
+            metadata: {
+                id: "3",
+                createdAt: BigInt(124),
+                sessionId: "session-a",
+            },
+        },
+    ];
+
+
+    expect(combineClientAndServerEvents(clientEvents, serverEvents)).toEqual(
+        [
+        {
+            event: {
+                event: {
+                    oneofKind: "addUser",
+                    addUser: {
+                        userId: "DBD8471F-0119-4D69-9ECC-D293D8A04523",
+                        order: 100,
+                        name: "client-only-user",
+                    }
+                }
+            },
+            metadata: {
+                id: "2",
+                createdAt: BigInt(121),
+                sessionId: "session-a",
+            },
+        },
+        {
+            event: {
+                event: {
+                    oneofKind: "addUser",
+                    addUser: {
+                        userId: "2857267B-9CF5-4A74-B56D-D99A90CDFD57",
+                        order: 100,
+                        name: "server-version-of-name",
+                    }
+                }
+            },
+            metadata: {
+                id: "1",
+                createdAt: BigInt(123),
+                sessionId: "session-a",
+            },
+        },
+        {
+            event: {
+                event: {
+                    oneofKind: "addUser",
+                    addUser: {
+                        userId: "2857267B-9CF5-4A74-B56D-D99A90CDFD57",
+                        order: 100,
+                        name: "server-version-of-name",
+                    }
+                }
+            },
+            metadata: {
+                id: "3",
+                createdAt: BigInt(124),
+                sessionId: "session-a",
+            },
+        },
+    ]);
 });
 
 test('undo with matching events undoes the last non-undone event', () => {

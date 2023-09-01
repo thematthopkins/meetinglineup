@@ -26,6 +26,25 @@ export function applyRoomEvents(id: string, events: RoomEventWithMetadata[]) : R
     return eventsWithUndo.reduce((r, e) => applyRoomEvent(r, e), r);
 }
 
+export function recalculateRoom(clientEvents: RoomEventWithMetadata[], serverEvents: RoomEventWithMetadata[]){
+    var allEvents = combineClientAndServerEvents(clientEvents, serverEvents);
+    return applyRoomEvents('my-room-id', allEvents);
+};
+
+
+export function combineClientAndServerEvents(clientEvents: RoomEventWithMetadata[], serverEvents: RoomEventWithMetadata[]){
+    return clientEvents.reduce((events, clientEvent) => {
+        if(events.find(e => e.metadata!.id == clientEvent.metadata!.id))
+            return events;
+        else
+            return [...events, clientEvent]
+    }, serverEvents).sort((a, b) => {
+        var first = a.metadata!.createdAt;
+        var second = b.metadata!.createdAt;
+        return (first < second) ? -1 : ((first > second) ? 1 : 0);
+    })
+}
+
 function applyRoomEvent(room: Room, event: RoomEventWithMetadataAndUndo): Room { 
     if(event.undone){
         return room;

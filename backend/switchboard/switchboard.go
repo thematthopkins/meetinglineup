@@ -12,7 +12,7 @@ type JoinRequest struct {
 }
 
 type RoomEntry struct {
-	AddConnectionChannel chan<- *room.RoomConnection
+	RoomInbox chan *room.MsgFromUser
 	ShutdownChannel      chan<- struct{}
 }
 
@@ -20,23 +20,28 @@ func RunSwitchboard(ctx context.Context, addConnectionChannel <-chan *JoinReques
 	rooms := map[string]*RoomEntry{}
 
 	for {
-		select {
-		case joinRequest := <-addConnectionChannel:
-			existing, ok := rooms[joinRequest.RoomId]
-			if !ok {
-				addConnectionChannel := make(chan *room.RoomConnection)
-				shutdownChannel := make(chan struct{})
-				rooms[joinRequest.RoomId] = &RoomEntry{
-					AddConnectionChannel: addConnectionChannel,
-					ShutdownChannel:      shutdownChannel,
-				}
+		joinRequest := <-addConnectionChannel
+        existing, ok := rooms[joinRequest.RoomId]
+        if !ok {
+            roomInbox := make(chan *room.MsgFromUser)
+            shutdownChannel := make(chan struct{})
+            rooms[joinRequest.RoomId] = &RoomEntry{
+                RoomInbox: roomInbox,
+                ShutdownChannel:      shutdownChannel,
+            }
 
-				existing = rooms[joinRequest.RoomId]
+            existing = rooms[joinRequest.RoomId]
 
-				go room.RunRoom(ctx, addConnectionChannel)
-			}
-			fmt.Println("sending join request to room")
-			existing.AddConnectionChannel <- joinRequest.RoomConnection
-		}
+            go room.RunRoom(ctx, roomInbox)
+        }
+        fmt.Println("sending user connetion notification")
+        joinRequest.RoomConnection.ChanFromRoomToUser <- &room.MsgToUser{
+            Connected: existing.RoomInbox,
+        }
+        fmt.Println("sending room connection notification")
+        existing.RoomInbox <- &room.MsgFromUser{
+            Connection: joinRequest.RoomConnection,
+            Connect: &struct{}{},
+        }
 	}
 }
